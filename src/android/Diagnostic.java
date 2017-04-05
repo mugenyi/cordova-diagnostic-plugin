@@ -1019,12 +1019,12 @@ public class Diagnostic extends CordovaPlugin{
 
     public void initializeSettings(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-          if (Settings.System.canWrite(context) {
+          if (Settings.System.canWrite(context)) {
               // Do stuff here
           }
           else {
               Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-              intent.setData(Uri.parse(“package:” + getActivity().getPackageName()));
+              intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
               intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
               startActivity(intent);
           }
