@@ -1020,7 +1020,7 @@ public class Diagnostic extends CordovaPlugin{
   ////initialise android project
     public void initializeSettings(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-          if (Settings.System.canWrite(Context context)) {
+          if (Settings.System.canWrite(this.cordova.getActivity().getApplicationContext())){
               // Do stuff here
           }
           else {
