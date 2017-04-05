@@ -60,12 +60,12 @@ import android.os.StatFs;
 import android.support.v4.os.EnvironmentCompat;
 import android.text.TextUtils;
 import android.util.Log;
-import android.settings.action.MANAGE_WRITE_SETTINGS;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.net.wifi.WifiManager;
+
 
 import android.support.v4.app.ActivityCompat;
 import java.lang.SecurityException;
@@ -1020,7 +1020,7 @@ public class Diagnostic extends CordovaPlugin{
   ////initialise android project
     public void initializeSettings(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-          if (Settings.System.canWrite(context)) {
+          if (Settings.System.canWrite(Context context)) {
               // Do stuff here
           }
           else {
