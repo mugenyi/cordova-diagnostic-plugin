@@ -157,13 +157,18 @@ var Diagnostic = (function() {
             groups[runtimeGroupsMap[permission]] = 1;
         });
 
-
-        for (var group in groups) {
-            Diagnostic.permissionGroups[group].forEach(function(permission) {
-                if (!Diagnostic.firstRequestedPermissions[permission]) {
-                    setPermissionFirstRequested(permission);
-                }
-            });
+        if (groups.length > 0) {
+            for (var group in groups) {
+                Diagnostic.permissionGroups[group].forEach(function(permission) {
+                    if (!Diagnostic.firstRequestedPermissions[permission]) {
+                        setPermissionFirstRequested(permission);
+                    }
+                });
+            }
+        } else {
+            if (!Diagnostic.firstRequestedPermissions[permission]) {
+                setPermissionFirstRequested(permission);
+            }
         }
     }
 
