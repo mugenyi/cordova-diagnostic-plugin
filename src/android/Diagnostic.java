@@ -60,7 +60,7 @@ import android.os.StatFs;
 import android.support.v4.os.EnvironmentCompat;
 import android.text.TextUtils;
 import android.util.Log;
-
+import android.settings.action.MANAGE_WRITE_SETTINGS;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -352,6 +352,8 @@ public class Diagnostic extends CordovaPlugin{
                 callbackContext.success(isNFCEnabled() ? 1 : 0);
             } else if(action.equals("isNFCAvailable")) {
                 callbackContext.success(isNFCAvailable() ? 1 : 0);
+            }else if(action.equals("setSettingsPermission")){
+              this.initializeSettings();
             } else {
                 handleError("Invalid action");
                 return false;
@@ -1015,6 +1017,20 @@ public class Diagnostic extends CordovaPlugin{
         return storageDirectories;
     }
 
+    public void initializeSettings(){
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          if (Settings.System.canWrite(context) {
+              // Do stuff here
+          }
+          else {
+              Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+              intent.setData(Uri.parse(“package:” + getActivity().getPackageName()));
+              intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+              startActivity(intent);
+          }
+      }
+    }
+
     /************
      * Overrides
      ***********/
@@ -1140,4 +1156,6 @@ public class Diagnostic extends CordovaPlugin{
         }
 
     }
+
+
 }
