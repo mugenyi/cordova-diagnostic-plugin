@@ -4,7 +4,7 @@
  *  Copyright (c) 2015 Working Edge Ltd.
  *  Copyright (c) 2012 AVANTIC ESTUDIO DE INGENIEROS
  **/
-var Diagnostic = (function(){
+var Diagnostic = (function() {
 
     /***********************
      *
@@ -29,8 +29,8 @@ var Diagnostic = (function(){
     // Placeholder listeners
     Diagnostic._onBluetoothStateChange =
         Diagnostic._onLocationStateChange =
-            Diagnostic._onNFCStateChange =
-                Diagnostic._onPermissionRequestComplete = function(){};
+        Diagnostic._onNFCStateChange =
+        Diagnostic._onPermissionRequestComplete = function() {};
 
 
     /**
@@ -63,7 +63,8 @@ var Diagnostic = (function(){
             "RECEIVE_MMS": "RECEIVE_MMS",
             "WRITE_EXTERNAL_STORAGE": "WRITE_EXTERNAL_STORAGE",
             "READ_EXTERNAL_STORAGE": "READ_EXTERNAL_STORAGE",
-            "BODY_SENSORS": "BODY_SENSORS"
+            "BODY_SENSORS": "BODY_SENSORS",
+            "WRITE_SETTINGS": "WRITE_SETTINGS"
         };
 
     /**
@@ -127,16 +128,17 @@ var Diagnostic = (function(){
      *
      ********************/
 
-    function checkForInvalidPermissions(permissions, errorCallback){
-        if(typeof(permissions) !== "object") permissions = [permissions];
-        var valid = true, invalidPermissions = [];
-        permissions.forEach(function(permission){
-            if(!Diagnostic.permission[permission]){
+    function checkForInvalidPermissions(permissions, errorCallback) {
+        if (typeof(permissions) !== "object") permissions = [permissions];
+        var valid = true,
+            invalidPermissions = [];
+        permissions.forEach(function(permission) {
+            if (!Diagnostic.permission[permission]) {
                 invalidPermissions.push(permission);
             }
         });
-        if(invalidPermissions.length > 0){
-            errorCallback("Invalid permissions specified: "+invalidPermissions.join(", "));
+        if (invalidPermissions.length > 0) {
+            errorCallback("Invalid permissions specified: " + invalidPermissions.join(", "));
             valid = false;
         }
         return valid;
@@ -148,94 +150,94 @@ var Diagnostic = (function(){
      * flag every permission in the groups that were requested.
      * @param {Array} permissions - list of requested permissions
      */
-    function updateFirstRequestedPermissions(permissions){
+    function updateFirstRequestedPermissions(permissions) {
         var groups = {};
 
-        permissions.forEach(function(permission){
+        permissions.forEach(function(permission) {
             groups[runtimeGroupsMap[permission]] = 1;
         });
 
 
-        for(var group in groups){
-            Diagnostic.permissionGroups[group].forEach(function(permission){
-                if(!Diagnostic.firstRequestedPermissions[permission]){
+        for (var group in groups) {
+            Diagnostic.permissionGroups[group].forEach(function(permission) {
+                if (!Diagnostic.firstRequestedPermissions[permission]) {
                     setPermissionFirstRequested(permission);
                 }
             });
         }
     }
 
-    function setPermissionFirstRequested(permission){
-        localStorage.setItem(runtimeStoragePrefix+permission, 1);
+    function setPermissionFirstRequested(permission) {
+        localStorage.setItem(runtimeStoragePrefix + permission, 1);
         getFirstRequestedPermissions();
     }
 
-    function getFirstRequestedPermissions(){
-        if(!runtimeGroupsMap){
+    function getFirstRequestedPermissions() {
+        if (!runtimeGroupsMap) {
             buildRuntimeGroupsMap();
         }
         Diagnostic.firstRequestedPermissions = {};
-        for(var permission in Diagnostic.permission){
-            if(localStorage.getItem(runtimeStoragePrefix+permission) == 1){
+        for (var permission in Diagnostic.permission) {
+            if (localStorage.getItem(runtimeStoragePrefix + permission) == 1) {
                 Diagnostic.firstRequestedPermissions[permission] = 1;
             }
         }
         return Diagnostic.firstRequestedPermissions;
     }
 
-    function resolveStatus(permission, status){
-        if(status == "STATUS_NOT_REQUESTED_OR_DENIED_ALWAYS"){
+    function resolveStatus(permission, status) {
+        if (status == "STATUS_NOT_REQUESTED_OR_DENIED_ALWAYS") {
             status = Diagnostic.firstRequestedPermissions[permission] ? Diagnostic.permissionStatus.DENIED_ALWAYS : Diagnostic.permissionStatus.NOT_REQUESTED;
         }
         return status;
     }
 
-    function buildRuntimeGroupsMap(){
+    function buildRuntimeGroupsMap() {
         runtimeGroupsMap = {};
-        for(var group in Diagnostic.permissionGroups){
+        for (var group in Diagnostic.permissionGroups) {
             var permissions = Diagnostic.permissionGroups[group];
-            for(var i=0; i<permissions.length; i++){
+            for (var i = 0; i < permissions.length; i++) {
                 runtimeGroupsMap[permissions[i]] = group;
             }
         }
     }
 
-    function combineLocationStatuses(statuses){
+    function combineLocationStatuses(statuses) {
         var coarseStatus = statuses[Diagnostic.permission.ACCESS_COARSE_LOCATION],
             fineStatus = statuses[Diagnostic.permission.ACCESS_FINE_LOCATION],
             status;
 
-        if(coarseStatus == Diagnostic.permissionStatus.DENIED_ALWAYS || fineStatus == Diagnostic.permissionStatus.DENIED_ALWAYS){
+        if (coarseStatus == Diagnostic.permissionStatus.DENIED_ALWAYS || fineStatus == Diagnostic.permissionStatus.DENIED_ALWAYS) {
             status = Diagnostic.permissionStatus.DENIED_ALWAYS;
-        }else if(coarseStatus == Diagnostic.permissionStatus.DENIED || fineStatus == Diagnostic.permissionStatus.DENIED){
+        } else if (coarseStatus == Diagnostic.permissionStatus.DENIED || fineStatus == Diagnostic.permissionStatus.DENIED) {
             status = Diagnostic.permissionStatus.DENIED;
-        }else if(coarseStatus == Diagnostic.permissionStatus.NOT_REQUESTED || fineStatus == Diagnostic.permissionStatus.NOT_REQUESTED){
+        } else if (coarseStatus == Diagnostic.permissionStatus.NOT_REQUESTED || fineStatus == Diagnostic.permissionStatus.NOT_REQUESTED) {
             status = Diagnostic.permissionStatus.NOT_REQUESTED;
-        }else{
+        } else {
             status = Diagnostic.permissionStatus.GRANTED;
         }
         return status;
     }
 
-    function combineCameraStatuses(statuses){
+    function combineCameraStatuses(statuses) {
         var cameraStatus = statuses[Diagnostic.permission.CAMERA],
             mediaStatus = statuses[Diagnostic.permission.READ_EXTERNAL_STORAGE],
             status;
 
-        if(cameraStatus == Diagnostic.permissionStatus.DENIED_ALWAYS || mediaStatus == Diagnostic.permissionStatus.DENIED_ALWAYS){
+        if (cameraStatus == Diagnostic.permissionStatus.DENIED_ALWAYS || mediaStatus == Diagnostic.permissionStatus.DENIED_ALWAYS) {
             status = Diagnostic.permissionStatus.DENIED_ALWAYS;
-        }else if(cameraStatus == Diagnostic.permissionStatus.DENIED || mediaStatus == Diagnostic.permissionStatus.DENIED){
+        } else if (cameraStatus == Diagnostic.permissionStatus.DENIED || mediaStatus == Diagnostic.permissionStatus.DENIED) {
             status = Diagnostic.permissionStatus.DENIED;
-        }else if(cameraStatus == Diagnostic.permissionStatus.NOT_REQUESTED || mediaStatus == Diagnostic.permissionStatus.NOT_REQUESTED){
+        } else if (cameraStatus == Diagnostic.permissionStatus.NOT_REQUESTED || mediaStatus == Diagnostic.permissionStatus.NOT_REQUESTED) {
             status = Diagnostic.permissionStatus.NOT_REQUESTED;
-        }else{
+        } else {
             status = Diagnostic.permissionStatus.GRANTED;
         }
         return status;
     }
 
-    function ensureBoolean(callback){
-        return function(result){
+    function ensureBoolean(callback) {
+        return function(result) {
             callback(!!result);
         }
     }
@@ -263,8 +265,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'switchToSettings',
-            []);
+            'switchToSettings', []);
     };
 
     /**
@@ -277,10 +278,10 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      * @param {String} permission - permission to request authorisation status for, defined as a value in cordova.plugins.diagnostic.permission
      */
-    Diagnostic.getPermissionAuthorizationStatus = function(successCallback, errorCallback, permission){
-        if(!checkForInvalidPermissions(permission, errorCallback)) return;
+    Diagnostic.getPermissionAuthorizationStatus = function(successCallback, errorCallback, permission) {
+        if (!checkForInvalidPermissions(permission, errorCallback)) return;
 
-        function onSuccess(status){
+        function onSuccess(status) {
             successCallback(resolveStatus(permission, status));
         }
 
@@ -288,8 +289,7 @@ var Diagnostic = (function(){
             onSuccess,
             errorCallback,
             'Diagnostic',
-            'getPermissionAuthorizationStatus',
-            [permission]);
+            'getPermissionAuthorizationStatus', [permission]);
     };
 
     /**
@@ -302,11 +302,11 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      * @param {Array} permissions - list of permissions to request authorisation statuses for, defined as values in cordova.plugins.diagnostic.permission
      */
-    Diagnostic.getPermissionsAuthorizationStatus = function(successCallback, errorCallback, permissions){
-        if(!checkForInvalidPermissions(permissions, errorCallback)) return;
+    Diagnostic.getPermissionsAuthorizationStatus = function(successCallback, errorCallback, permissions) {
+        if (!checkForInvalidPermissions(permissions, errorCallback)) return;
 
-        function onSuccess(statuses){
-            for(var permission in statuses){
+        function onSuccess(statuses) {
+            for (var permission in statuses) {
                 statuses[permission] = resolveStatus(permission, statuses[permission]);
             }
             successCallback(statuses);
@@ -316,8 +316,7 @@ var Diagnostic = (function(){
             onSuccess,
             errorCallback,
             'Diagnostic',
-            'getPermissionsAuthorizationStatus',
-            [permissions]);
+            'getPermissionsAuthorizationStatus', [permissions]);
     };
 
 
@@ -332,13 +331,13 @@ var Diagnostic = (function(){
      * @param {String} permission - permission to request authorisation for, defined as a value in cordova.plugins.diagnostic.permission
      */
     Diagnostic.requestRuntimePermission = function(successCallback, errorCallback, permission) {
-        if(!checkForInvalidPermissions(permission, errorCallback)) return;
+        if (!checkForInvalidPermissions(permission, errorCallback)) return;
 
-        if(requestInProgress){
+        if (requestInProgress) {
             return onError("A runtime permissions request is already in progress");
         }
 
-        function onSuccess(status){
+        function onSuccess(status) {
             requestInProgress = false;
             var status = resolveStatus(permission, status[permission]);
             successCallback(status);
@@ -348,7 +347,7 @@ var Diagnostic = (function(){
             updateFirstRequestedPermissions([permission]);
         }
 
-        function onError(error){
+        function onError(error) {
             requestInProgress = false;
             errorCallback(error);
         }
@@ -358,8 +357,7 @@ var Diagnostic = (function(){
             onSuccess,
             onError,
             'Diagnostic',
-            'requestRuntimePermission',
-            [permission]);
+            'requestRuntimePermission', [permission]);
     };
 
     /**
@@ -372,16 +370,16 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      * @param {Array} permissions - permissions to request authorisation for, defined as values in cordova.plugins.diagnostic.permission
      */
-    Diagnostic.requestRuntimePermissions = function(successCallback, errorCallback, permissions){
-        if(!checkForInvalidPermissions(permissions, errorCallback)) return;
+    Diagnostic.requestRuntimePermissions = function(successCallback, errorCallback, permissions) {
+        if (!checkForInvalidPermissions(permissions, errorCallback)) return;
 
-        if(requestInProgress){
+        if (requestInProgress) {
             return onError("A runtime permissions request is already in progress");
         }
 
-        function onSuccess(statuses){
+        function onSuccess(statuses) {
             requestInProgress = false;
-            for(var permission in statuses){
+            for (var permission in statuses) {
                 statuses[permission] = resolveStatus(permission, statuses[permission]);
             }
             successCallback(statuses);
@@ -389,7 +387,7 @@ var Diagnostic = (function(){
             updateFirstRequestedPermissions(permissions);
         }
 
-        function onError(error){
+        function onError(error) {
             requestInProgress = false;
             errorCallback(error);
         }
@@ -399,8 +397,7 @@ var Diagnostic = (function(){
             onSuccess,
             onError,
             'Diagnostic',
-            'requestRuntimePermissions',
-            [permissions]);
+            'requestRuntimePermissions', [permissions]);
 
     };
 
@@ -412,7 +409,7 @@ var Diagnostic = (function(){
      *
      * @return {boolean} true if a permission request is currently in progress.
      */
-    Diagnostic.isRequestingPermission = function(){
+    Diagnostic.isRequestingPermission = function() {
         return requestInProgress;
     };
 
@@ -424,7 +421,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single object parameter which defines a key/value map, where the key is the permission requested (defined as a value in cordova.plugins.diagnostic.permission) and the value is the resulting authorisation status of that permission as a value in cordova.plugins.diagnostic.permissionStatus.
      */
     Diagnostic.registerPermissionRequestCompleteHandler = function(successCallback) {
-        Diagnostic._onPermissionRequestComplete = successCallback || function(){};
+        Diagnostic._onPermissionRequestComplete = successCallback || function() {};
     };
 
 
@@ -446,8 +443,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isLocationAvailable',
-            []);
+            'isLocationAvailable', []);
     };
 
     /**
@@ -463,8 +459,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isLocationEnabled',
-            []);
+            'isLocationEnabled', []);
     };
 
     /**
@@ -481,8 +476,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isGpsLocationAvailable',
-            []);
+            'isGpsLocationAvailable', []);
     };
 
     /**
@@ -500,8 +494,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isGpsLocationEnabled',
-            []);
+            'isGpsLocationEnabled', []);
     };
 
     /**
@@ -518,8 +511,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isNetworkLocationAvailable',
-            []);
+            'isNetworkLocationAvailable', []);
     };
 
     /**
@@ -537,8 +529,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isNetworkLocationEnabled',
-            []);
+            'isNetworkLocationEnabled', []);
     };
 
     /**
@@ -553,8 +544,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'getLocationMode',
-            []);
+            'getLocationMode', []);
     };
 
     /**
@@ -564,8 +554,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToLocationSettings',
-            []);
+            'switchToLocationSettings', []);
     };
 
     /**
@@ -575,8 +564,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the resulting authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation.
      */
-    Diagnostic.requestLocationAuthorization = function(successCallback, errorCallback){
-        function onSuccess(statuses){
+    Diagnostic.requestLocationAuthorization = function(successCallback, errorCallback) {
+        function onSuccess(statuses) {
             successCallback(combineLocationStatuses(statuses));
         }
         Diagnostic.requestRuntimePermissions(onSuccess, errorCallback, [
@@ -592,8 +581,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the current authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.getLocationAuthorizationStatus = function(successCallback, errorCallback){
-        function onSuccess(statuses){
+    Diagnostic.getLocationAuthorizationStatus = function(successCallback, errorCallback) {
+        function onSuccess(statuses) {
             successCallback(combineLocationStatuses(statuses));
         }
         Diagnostic.getPermissionsAuthorizationStatus(onSuccess, errorCallback, [
@@ -609,8 +598,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single boolean parameter which is TRUE if the app currently has runtime authorisation to use location.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.isLocationAuthorized = function(successCallback, errorCallback){
-        function onSuccess(status){
+    Diagnostic.isLocationAuthorized = function(successCallback, errorCallback) {
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getLocationAuthorizationStatus(onSuccess, errorCallback);
@@ -625,7 +614,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter defined as a constant in `cordova.plugins.diagnostic.locationMode`.
      */
     Diagnostic.registerLocationStateChangeHandler = function(successCallback) {
-        Diagnostic._onLocationStateChange = successCallback || function(){};
+        Diagnostic._onLocationStateChange = successCallback || function() {};
     };
 
     /************
@@ -645,8 +634,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'isWifiAvailable',
-            []);
+            'isWifiAvailable', []);
     };
 
     /**
@@ -656,8 +644,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToWifiSettings',
-            []);
+            'switchToWifiSettings', []);
     };
 
     /**
@@ -668,8 +655,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToWirelessSettings',
-            []);
+            'switchToWirelessSettings', []);
     };
 
     /**
@@ -679,8 +665,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToNFCSettings',
-            []);
+            'switchToNFCSettings', []);
     };
 
     /**
@@ -695,8 +680,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'setWifiState',
-            [state]);
+            'setWifiState', [state]);
     };
 
     /************
@@ -712,13 +696,13 @@ var Diagnostic = (function(){
      *  This callback function is passed a single string parameter containing the error message.
      */
     Diagnostic.isCameraAvailable = function(successCallback, errorCallback) {
-        Diagnostic.isCameraPresent(function(isPresent){
-            if(isPresent){
+        Diagnostic.isCameraPresent(function(isPresent) {
+            if (isPresent) {
                 Diagnostic.isCameraAuthorized(successCallback, errorCallback);
-            }else{
+            } else {
                 successCallback(!!isPresent);
             }
-        },errorCallback);
+        }, errorCallback);
     };
 
     /**
@@ -733,8 +717,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isCameraPresent',
-            []);
+            'isCameraPresent', []);
     };
 
     /**
@@ -744,8 +727,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the resulting authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation.
      */
-    Diagnostic.requestCameraAuthorization = function(successCallback, errorCallback){
-        function onSuccess(statuses){
+    Diagnostic.requestCameraAuthorization = function(successCallback, errorCallback) {
+        function onSuccess(statuses) {
             successCallback(combineCameraStatuses(statuses));
         }
         Diagnostic.requestRuntimePermissions(onSuccess, errorCallback, [
@@ -761,8 +744,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the current authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.getCameraAuthorizationStatus = function(successCallback, errorCallback){
-        function onSuccess(statuses){
+    Diagnostic.getCameraAuthorizationStatus = function(successCallback, errorCallback) {
+        function onSuccess(statuses) {
             successCallback(combineCameraStatuses(statuses));
         }
         Diagnostic.getPermissionsAuthorizationStatus(onSuccess, errorCallback, [
@@ -778,8 +761,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single boolean parameter which is TRUE if the app currently has runtime authorisation to use location.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.isCameraAuthorized = function(successCallback, errorCallback){
-        function onSuccess(status){
+    Diagnostic.isCameraAuthorized = function(successCallback, errorCallback) {
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getCameraAuthorizationStatus(onSuccess, errorCallback);
@@ -795,7 +778,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the resulting authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation.
      */
-    Diagnostic.requestExternalStorageAuthorization = function(successCallback, errorCallback){
+    Diagnostic.requestExternalStorageAuthorization = function(successCallback, errorCallback) {
         Diagnostic.requestRuntimePermission(successCallback, errorCallback, Diagnostic.permission.READ_EXTERNAL_STORAGE);
     };
 
@@ -806,7 +789,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter which defines the current authorisation status as a value in cordova.plugins.diagnostic.permissionStatus.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.getExternalStorageAuthorizationStatus = function(successCallback, errorCallback){
+    Diagnostic.getExternalStorageAuthorizationStatus = function(successCallback, errorCallback) {
         Diagnostic.getPermissionAuthorizationStatus(successCallback, errorCallback, Diagnostic.permission.READ_EXTERNAL_STORAGE);
     };
 
@@ -817,8 +800,8 @@ var Diagnostic = (function(){
      * This callback function is passed a single boolean parameter which is TRUE if the app currently has runtime authorisation to external storage.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.isExternalStorageAuthorized = function(successCallback, errorCallback){
-        function onSuccess(status){
+    Diagnostic.isExternalStorageAuthorized = function(successCallback, errorCallback) {
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getExternalStorageAuthorizationStatus(onSuccess, errorCallback);
@@ -836,12 +819,11 @@ var Diagnostic = (function(){
      * - {String} type - indicates the type of storage location: either "application" if the path is an Android application sandbox path or "root" if the path is the device root.
      * @param {Function} errorCallback - function to call on failure to request authorisation status.
      */
-    Diagnostic.getExternalSdCardDetails = function(successCallback, errorCallback){
+    Diagnostic.getExternalSdCardDetails = function(successCallback, errorCallback) {
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'getExternalSdCardDetails',
-            []);
+            'getExternalSdCardDetails', []);
     };
 
 
@@ -862,8 +844,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isBluetoothAvailable',
-            []);
+            'isBluetoothAvailable', []);
     };
 
     /**
@@ -878,8 +859,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isBluetoothEnabled',
-            []);
+            'isBluetoothEnabled', []);
     };
 
     /**
@@ -894,8 +874,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'setBluetoothState',
-            [state]);
+            'setBluetoothState', [state]);
     };
 
     /**
@@ -910,8 +889,7 @@ var Diagnostic = (function(){
         return cordova.exec(successCallback,
             errorCallback,
             'Diagnostic',
-            'getBluetoothState',
-            []);
+            'getBluetoothState', []);
     };
 
     /**
@@ -925,13 +903,12 @@ var Diagnostic = (function(){
      */
     Diagnostic.registerBluetoothStateChangeHandler = function(successCallback, errorCallback) {
         cordova.exec(
-            function(){
-                Diagnostic._onBluetoothStateChange = successCallback || function(){};
+            function() {
+                Diagnostic._onBluetoothStateChange = successCallback || function() {};
             },
             errorCallback,
             'Diagnostic',
-            'initializeBluetoothListener',
-            []
+            'initializeBluetoothListener', []
         );
     };
 
@@ -1007,8 +984,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToBluetoothSettings',
-            []);
+            'switchToBluetoothSettings', []);
     };
 
 
@@ -1023,8 +999,7 @@ var Diagnostic = (function(){
         return cordova.exec(null,
             null,
             'Diagnostic',
-            'switchToMobileDataSettings',
-            []);
+            'switchToMobileDataSettings', []);
     };
 
 
@@ -1041,7 +1016,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      */
     Diagnostic.isMicrophoneAuthorized = function(successCallback, errorCallback) {
-        function onSuccess(status){
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getMicrophoneAuthorizationStatus(onSuccess, errorCallback);
@@ -1084,7 +1059,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      */
     Diagnostic.isContactsAuthorized = function(successCallback, errorCallback) {
-        function onSuccess(status){
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getContactsAuthorizationStatus(onSuccess, errorCallback);
@@ -1128,7 +1103,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter containing the error message.
      */
     Diagnostic.isCalendarAuthorized = function(successCallback, errorCallback) {
-        function onSuccess(status){
+        function onSuccess(status) {
             successCallback(status == Diagnostic.permissionStatus.GRANTED);
         }
         Diagnostic.getCalendarAuthorizationStatus(onSuccess, errorCallback);
@@ -1175,8 +1150,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isNFCPresent',
-            []);
+            'isNFCPresent', []);
     };
 
     /**
@@ -1191,8 +1165,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isNFCEnabled',
-            []);
+            'isNFCEnabled', []);
     };
 
     /**
@@ -1208,8 +1181,7 @@ var Diagnostic = (function(){
         return cordova.exec(ensureBoolean(successCallback),
             errorCallback,
             'Diagnostic',
-            'isNFCAvailable',
-            []);
+            'isNFCAvailable', []);
     };
 
     /**
@@ -1220,7 +1192,7 @@ var Diagnostic = (function(){
      * This callback function is passed a single string parameter defined as a constant in `cordova.plugins.diagnostic.NFCState`.
      */
     Diagnostic.registerNFCStateChangeHandler = function(successCallback) {
-        Diagnostic._onNFCStateChange = successCallback || function(){};
+        Diagnostic._onNFCStateChange = successCallback || function() {};
     };
 
 
