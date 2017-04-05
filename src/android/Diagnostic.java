@@ -1017,16 +1017,17 @@ public class Diagnostic extends CordovaPlugin{
         return storageDirectories;
     }
 
+  ////initialise android project
     public void initializeSettings(){
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
           if (Settings.System.canWrite(context)) {
               // Do stuff here
           }
           else {
-              Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-              intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
+              Intent  intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+              intent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
               intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-              startActivity(intent);
+              cordova.getActivity().startActivity(intent);
           }
       }
     }
