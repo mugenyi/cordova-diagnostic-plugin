@@ -558,18 +558,6 @@ var Diagnostic = (function() {
             'Diagnostic',
             'switchToLocationSettings', []);
     };
-
-
-    /**
-     * initialize settings
-     * @type {[type]}
-     */
-    Diagnostic.initializeSettings = function() {
-        return cordova.exec('setSettingsPermission',
-            null,
-            'Diagnostic',
-            'switchToLocationSettings', []);
-    };
 }
 
 /**
@@ -1208,6 +1196,39 @@ Diagnostic.isNFCAvailable = function(successCallback, errorCallback) {
  */
 Diagnostic.registerNFCStateChangeHandler = function(successCallback) {
     Diagnostic._onNFCStateChange = successCallback || function() {};
+};
+
+
+/**
+ * request for settings permisions
+ */
+Diagnostic.initializeSettings = function() {
+
+    if (requestInProgress) {
+        return onError("A runtime permissions request is already in progress");
+    }
+
+    function onSuccess(statuses) {
+        requestInProgress = false;
+        for (var permission in statuses) {
+            statuses[permission] = resolveStatus(permission, statuses[permission]);
+        }
+        successCallback(statuses);
+        Diagnostic._onPermissionRequestComplete(statuses);
+        updateFirstRequestedPermissions(permissions);
+    }
+
+    function onError(error) {
+        requestInProgress = false;
+        errorCallback(error);
+    }
+
+    requestInProgress = true;
+
+    return cordova.exec(onSuccess,
+        onError,
+        'Diagnostic',
+        'setSettingsPermission', []);
 };
 
 
