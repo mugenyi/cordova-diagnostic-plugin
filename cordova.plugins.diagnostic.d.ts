@@ -172,8 +172,8 @@ interface Diagnostic {
 
     /**
      * ANDROID and iOS ONLY
-     * Returns true if the device setting for location is on. 
-     * On Android this returns true if Location Mode is switched on. 
+     * Returns true if the device setting for location is on.
+     * On Android this returns true if Location Mode is switched on.
      * On iOS this returns true if Location Services is switched on.
      * @param successCallback
      * @param errorCallback
@@ -826,6 +826,12 @@ interface Diagnostic {
         successCallback: (status: string) => void,
         errorCallback: (error: string) => void
     ) => void;
+
+    initializeSettings?:(
+      successCallback: (status: string) => void,
+      errorCallback: (error: string) => void
+  ) => void;
+  
 }
 
 interface CordovaPlugins {
